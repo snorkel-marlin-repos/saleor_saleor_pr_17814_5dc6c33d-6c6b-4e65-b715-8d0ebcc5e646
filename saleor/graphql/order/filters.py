@@ -37,6 +37,7 @@ from ..core.types import (
     NonNullList,
 )
 from ..core.types.filter_input import (
+    DateTimeFilterInput,
     FilterInputDescriptions,
     GlobalIDFilterInput,
     IntFilterInput,
@@ -55,6 +56,7 @@ from ..utils.filters import (
     filter_where_by_numeric_field,
     filter_where_by_range_field,
     filter_where_by_value_field,
+    filter_where_range_field,
 )
 from .enums import (
     FulfillmentStatusEnum,
@@ -416,12 +418,12 @@ class OrderWhere(WhereFilterSet):
         help_text="Filter by channel.",
     )
     created_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput,
+        input_class=DateTimeFilterInput,
         method="filter_created_at_range",
         help_text="Filter order by created at date.",
     )
     updated_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput,
+        input_class=DateTimeFilterInput,
         method="filter_updated_at_range",
         help_text="Filter order by updated at date.",
     )
@@ -499,11 +501,6 @@ class OrderWhere(WhereFilterSet):
         method="filter_fulfillments",
         help_text="Filter by fulfillment data associated with the order.",
     )
-    lines_count = OperationObjectTypeWhereFilter(
-        input_class=IntFilterInput,
-        method="filter_lines_count",
-        help_text="Filter by number of lines in the order.",
-    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -517,11 +514,11 @@ class OrderWhere(WhereFilterSet):
 
     @staticmethod
     def filter_created_at_range(qs, _, value):
-        return filter_where_by_range_field(qs, "created_at", value)
+        return filter_where_range_field(qs, "created_at", value)
 
     @staticmethod
     def filter_updated_at_range(qs, _, value):
-        return filter_where_by_range_field(qs, "updated_at", value)
+        return filter_where_range_field(qs, "updated_at", value)
 
     @staticmethod
     def filter_user(qs, _, value):
@@ -608,10 +605,6 @@ class OrderWhere(WhereFilterSet):
             )
             return qs.filter(Exists(fulfillments.filter(order_id=OuterRef("id"))))
         return qs.none()
-
-    @staticmethod
-    def filter_lines_count(qs, _, value):
-        return filter_where_by_numeric_field(qs, "lines_count", value)
 
 
 class OrderWhereInput(WhereInputObjectType):

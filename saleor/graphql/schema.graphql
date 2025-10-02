@@ -12825,10 +12825,10 @@ input OrderWhereInput @doc(category: "Orders") {
   channelId: GlobalIDFilterInput
 
   """Filter order by created at date."""
-  createdAt: DateTimeRangeInput
+  createdAt: DateTimeFilterInput
 
   """Filter order by updated at date."""
-  updatedAt: DateTimeRangeInput
+  updatedAt: DateTimeFilterInput
 
   """Filter by user."""
   user: GlobalIDFilterInput
@@ -12879,9 +12879,6 @@ input OrderWhereInput @doc(category: "Orders") {
 
   """Filter by fulfillment data associated with the order."""
   fulfillments: FulfillmentFilterInput
-
-  """Filter by number of lines in the order."""
-  linesCount: IntFilterInput
 
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]

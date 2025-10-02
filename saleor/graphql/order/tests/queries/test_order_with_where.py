@@ -100,33 +100,43 @@ def test_order_filter_by_ids_empty_list(
     [
         (
             {
-                "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
-                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [1, 2],
         ),
         (
             {
-                "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
+                "range": {
+                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
+                }
             },
             [1, 2],
         ),
         (
             {
-                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [0, 1, 2],
         ),
         (
             {
-                "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [],
         ),
         (None, []),
-        ({"gte": None}, []),
-        ({"lte": None}, []),
-        ({"lte": None, "gte": None}, []),
+        ({"range": {"gte": None}}, []),
+        ({"range": {"lte": None}}, []),
+        ({"range": {"lte": None, "gte": None}}, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
         ({}, []),
     ],
 )
@@ -167,33 +177,43 @@ def test_orders_filter_by_created_at(
     [
         (
             {
-                "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
-                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [0, 1],
         ),
         (
             {
-                "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
+                "range": {
+                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
+                }
             },
             [0],
         ),
         (
             {
-                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [0, 1, 2],
         ),
         (
             {
-                "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
+                "range": {
+                    "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
+                }
             },
             [],
         ),
         (None, []),
-        ({"gte": None}, []),
-        ({"lte": None}, []),
-        ({"lte": None, "gte": None}, []),
+        ({"range": {"gte": None}}, []),
+        ({"range": {"lte": None}}, []),
+        ({"range": {"lte": None, "gte": None}}, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
         ({}, []),
     ],
 )
@@ -1564,50 +1584,6 @@ def test_orders_filter_by_fulfillment_status(
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"where": {"fulfillments": {"status": where}}}
-
-    # when
-    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
-
-    # then
-    content = get_graphql_content(response)
-    orders = content["data"]["orders"]["edges"]
-    assert len(orders) == len(indexes)
-    numbers = {node["node"]["number"] for node in orders}
-    assert numbers == {str(order_list[index].number) for index in indexes}
-
-
-@pytest.mark.parametrize(
-    ("where", "indexes"),
-    [
-        ({"range": {"gte": 2, "lte": 4}}, [1, 2]),
-        ({"range": {"gte": 3}}, [2]),
-        ({"range": {"lte": 2}}, [0, 1]),
-        ({"eq": 2}, [1]),
-        ({"oneOf": [1, 3]}, [0, 2]),
-        ({"eq": 99}, []),
-        ({}, []),
-        ({"range": {"gte": None}}, []),
-        ({"range": {"lte": None}}, []),
-        ({"eq": None}, []),
-        ({"oneOf": []}, []),
-        (None, []),
-    ],
-)
-def test_orders_filter_by_lines_count(
-    where,
-    indexes,
-    order_list,
-    staff_api_client,
-    permission_group_manage_orders,
-):
-    # given
-    order_list[0].lines_count = 1
-    order_list[1].lines_count = 2
-    order_list[2].lines_count = 3
-    Order.objects.bulk_update(order_list, ["lines_count"])
-
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"linesCount": where}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
